@@ -1,0 +1,25 @@
+<html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Agregar Usuario</title>
+</head>
+<body>
+  <h2>Formulario para agregar usuario</h2>
+  <form action="procesar_usuario.php" method="post">
+    <label for="nombre">Nombre:</label><br>
+    <input type="text" id="nombre" name="nombre" required><br><br>
+
+    <label for="apellido">Apellido:</label><br>
+    <input type="text" id="apellido" name="apellido" required><br><br>
+
+    <label for="email">Email:</label><br>
+    <input type="email" id="email" name="email" required><br><br>
+
+    <label for="telefono">Teléfono:</label><br>
+    <input type="tel" id="telefono" name="telefono" required><br><br>
+
+    <input type="submit" value="Agregar Usuario">
+  </form>
+</body>
+</html>
