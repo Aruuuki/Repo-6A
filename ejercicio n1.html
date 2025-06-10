@@ -1,0 +1,19 @@
+<html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Ejemplo de Alcance de Variables</title>
+</head>
+<body>
+  <script type="text/javascript">
+    var myVar = "global"; // Variable global
+
+    function checkscope() {
+      var myVar = "local"; // Variable local
+      document.write(myVar); // Imprime "local"
+    }
+
+    checkscope(); // Llamada a la función para ejecutar el código
+  </script>
+</body>
+</html>
