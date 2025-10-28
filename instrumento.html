@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Flujo de Combustible - Estilo Retro</title>
+  <style>
+    body {
+      font-family: "Courier New", monospace;
+      text-align: center;
+      background: radial-gradient(circle at center, #6b6b6b 0%, #2f2f2f 100%);
+      color: #f5deb3;
+    }
+    h1 {
+      text-shadow: 2px 2px 4px #000;
+      color: #ffe4b5;
+    }
+    canvas {
+      display: block;
+      margin: 20px auto;
+      background: transparent;
+    }
+    input[type="range"] {
+      width: 300px;
+      margin-top: 15px;
+      accent-color: #c49b66;
+    }
+    .valor-box {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 10px 18px;
+      border: 2px solid #c2a878;
+      border-radius: 10px;
+      background: linear-gradient(to bottom, #3e3e3e, #1e1e1e);
+      color: #ffecb3;
+      font-size: 20px;
+      font-weight: bold;
+      box-shadow: inset 0 0 8px #000, 0 0 6px #000;
+    }
+  </style>
+</head>
+<body>
+  <h1>Indicador de Flujo de Combustible</h1>
+
+  <canvas id="tacometro" width="400" height="400"></canvas>
+
+  <input type="range" id="control" min="0" max="18" step="1" value="0" />
+  <br />
+  <div id="valor" class="valor-box">0 GPH</div>
+
+  <script>
+    const canvas = document.getElementById("tacometro");
+    const ctx = canvas.getContext("2d");
+    const slider = document.getElementById("control");
+    const valorBox = document.getElementById("valor");
+
+    let val = 0;
+    const maxVal = 18;
+    const cx = 200, cy = 200;
+
+    function valToAngle(v) {
+      return Math.PI * 0.75 + (v / maxVal) * Math.PI * 1.5;
+    }
+
+    function dibujarInstrumento(valor) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // === Carcasa circular metálica ===
+      let carcasaGrad = ctx.createRadialGradient(cx, cy, 50, cx, cy, 180);
+      carcasaGrad.addColorStop(0, "#555");
+      carcasaGrad.addColorStop(0.4, "#2b2b2b");
+      carcasaGrad.addColorStop(1, "#0f0f0f");
+      ctx.beginPath();
+      ctx.arc(cx, cy, 180, 0, 2 * Math.PI);
+      ctx.fillStyle = carcasaGrad;
+      ctx.fill();
+
+      // === Borde metálico ===
+      let bordeGrad = ctx.createLinearGradient(0, 0, 400, 400);
+      bordeGrad.addColorStop(0, "#bba46e");
+      bordeGrad.addColorStop(1, "#5e4b2f");
+      ctx.lineWidth = 12;
+      ctx.strokeStyle = bordeGrad;
+      ctx.stroke();
+
+      // === Dial envejecido ===
+      const dialGrad = ctx.createRadialGradient(cx, cy, 50, cx, cy, 130);
+      dialGrad.addColorStop(0, "#222");
+      dialGrad.addColorStop(1, "#1a1a1a");
+      ctx.beginPath();
+      ctx.arc(cx, cy, 130, 0, 2 * Math.PI);
+      ctx.fillStyle = dialGrad;
+      ctx.fill();
+
+      // === Franjas de colores retro ===
+      function arcoColorRetro(inicio, fin, color) {
+        ctx.beginPath();
+        ctx.arc(cx, cy, 120, valToAngle(inicio), valToAngle(fin));
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 10;
+        ctx.stroke();
+      }
+      arcoColorRetro(0, 14, "#5ca75c"); // Verde apagado
+      arcoColorRetro(14, 16, "#d8c54d"); // Amarillo envejecido
+      arcoColorRetro(16, 18, "#c75c5c"); // Rojo opaco
+
+      // === Marcas y números ===
+      ctx.strokeStyle = "#ffecb3";
+      ctx.fillStyle = "#ffecb3";
+      for (let i = 0; i <= maxVal; i++) {
+        const ang = valToAngle(i);
+        const cos = Math.cos(ang), sin = Math.sin(ang);
+        const outer = 125;
+        const inner = (i % 2 === 0) ? 100 : 115;
+        const x1 = cx + cos * inner, y1 = cy + sin * inner;
+        const x2 = cx + cos * outer, y2 = cy + sin * outer;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.lineWidth = (i % 2 === 0) ? 2.5 : 1;
+        ctx.stroke();
+
+        if (i % 2 === 0) {
+          const tx = cx + cos * 85;
+          const ty = cy + sin * 85;
+          ctx.font = "16px 'Courier New'";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(i, tx, ty);
+        }
+      }
+
+      // === Texto ===
+      ctx.fillStyle = "#ffe4b5";
+      ctx.font = "16px 'Courier New'";
+      ctx.textAlign = "center";
+      ctx.fillText("FUEL", cx, cy - 40);
+      ctx.fillText("FLOW", cx, cy - 20);
+
+      ctx.fillStyle = "#c2a878";
+      ctx.font = "14px 'Courier New'";
+      ctx.fillText("GPH", cx, cy + 70);
+
+      // === Aguja metálica ===
+      dibujarAguja(valor);
+    }
+
+    function dibujarAguja(valor) {
+      const ang = valToAngle(valor);
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(ang);
+
+      // cuerpo de la aguja
+      const agujaGrad = ctx.createLinearGradient(-10, 0, 70, 0);
+      agujaGrad.addColorStop(0, "#c49b66");
+      agujaGrad.addColorStop(1, "#402d1a");
+
+      ctx.beginPath();
+      ctx.moveTo(-6, 0);
+      ctx.lineTo(-3, -8);
+      ctx.lineTo(65, -3);
+      ctx.lineTo(65, 3);
+      ctx.lineTo(-3, 8);
+      ctx.closePath();
+      ctx.fillStyle = agujaGrad;
+      ctx.fill();
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = "#f5deb3";
+      ctx.stroke();
+
+      // punta brillante
+      ctx.beginPath();
+      ctx.moveTo(65, -3);
+      ctx.lineTo(75, 0);
+      ctx.lineTo(65, 3);
+      ctx.closePath();
+      ctx.fillStyle = "#ffefc2";
+      ctx.fill();
+
+      ctx.restore();
+
+      // eje central metálico
+      let ejeGrad = ctx.createRadialGradient(cx, cy, 2, cx, cy, 10);
+      ejeGrad.addColorStop(0, "#fff");
+      ejeGrad.addColorStop(1, "#5b4630");
+      ctx.beginPath();
+      ctx.arc(cx, cy, 10, 0, 2 * Math.PI);
+      ctx.fillStyle = ejeGrad;
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "#bda278";
+      ctx.stroke();
+    }
+
+    slider.addEventListener("input", (e) => {
+      val = Number(e.target.value);
+      valorBox.textContent = val + " GPH";
+      dibujarInstrumento(val);
+    });
+
+    dibujarInstrumento(0);
+  </script>
+</body>
+</html>
